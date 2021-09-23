@@ -50,6 +50,15 @@ QBCore.Functions.CreateCallback('shanks-storagelockers:server:getOwnedLockers', 
     end
 end)
 
+RegisterNetEvent('shanks-storagelockers:server:changePasscode')
+AddEventHandler('shanks-storagelockers:server:changePasscode', function(newPasscode, lockername, lockertable)
+    Config.Lockers = json.decode(LoadResourceFile(GetCurrentResourceName(), "lockers.json"))
+    Config.Lockers[lockername]['password'] = newPasscode
+    SaveResourceFile(GetCurrentResourceName(), "./lockers.json", json.encode(Config.Lockers), -1)
+    TriggerClientEvent('shanks-storagelockers:client:FetchConfig', -1)
+    TriggerClientEvent('QBCore:Notify', src, 'Passcode Changed', 'success')
+end)
+
 RegisterNetEvent('shanks-storagelockers:server:sellLocker')
 AddEventHandler('shanks-storagelockers:server:sellLocker', function(lockername, lockertable)
     --add extra checks to make sure they own the locker
@@ -57,10 +66,8 @@ AddEventHandler('shanks-storagelockers:server:sellLocker', function(lockername, 
     local Player = QBCore.Functions.GetPlayer(src)
     local price = lockertable.price
     local saleprice = (tonumber(price)/100) * 10
-
     Config.Lockers[lockername]['isOwned'] = false
     Config.Lockers[lockername]['owner'] = '' --will this work?
-
     Player.Functions.AddMoney('bank', price, "Locker Sold")
     TriggerClientEvent('QBCore:Notify', src, 'Locker sold for ' .. saleprice, 'success')
     TriggerEvent('shanks-storagelockers:client:FetchConfig', -1)
@@ -84,11 +91,9 @@ QBCore.Commands.Add("locker", "Create a locker at your current location", {{name
         ["capacity"] = {},
         ["price"] = {},
         ["slots"] = {},
-        ["owner"] = {},
         ["coords"] = {}
     }
     newlocker["price"] = tonumber(price)
-    newlocker["owner"] = '' --need to see if this returns nill
     newlocker["capacity"] = tonumber(capacity)
     newlocker["slots"] = tonumber(slots)
     newlocker["coords"] = {x = coords.x, y = coords.y, z = coords.z}

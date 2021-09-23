@@ -172,17 +172,27 @@ end)
 
 RegisterNetEvent('shanks-storagelockers:client:changePasscode')
 AddEventHandler('shanks-storagelockers:client:changePasscode', function()
-    print('WIP')
+    SendNUIMessage({
+        type = "changePasscode",
+        action = "openKeypad",
+    })
+    SetNuiFocus(true, true)
 end)
 
 RegisterNetEvent('shanks-storagelockers:client:raidLocker')
 AddEventHandler('shanks-storagelockers:client:raidLocker', function(lockername, lockertable)
-    --add check if they have a stormram
-    TriggerServerEvent("inventory:server:OpenInventory", "stash", lockername, {
-        maxweight = currentLocker.capacity,
-        slots = currentLocker.slots,
-        })
-    TriggerEvent("inventory:client:SetCurrentStash", lockername)  
+    QBCore.Functions.TriggerCallback('QBCore:HasItem', function(HasItem)
+        if HasItem then
+            --add progressbar/animation
+            TriggerServerEvent("inventory:server:OpenInventory", "stash", lockername, {
+                maxweight = currentLocker.capacity,
+                slots = currentLocker.slots,
+                })
+            TriggerEvent("inventory:client:SetCurrentStash", lockername)  
+        else
+            QBCore.Functions.Notify("You don't have a Stormram on you..", "error")
+        end
+    end, 'police_stormram' )
 end)
 
 RegisterNetEvent('shanks-storagelockers:client:purchase') --trigger event after nh-context purchase button. Set password which then starts the buying process
@@ -267,6 +277,14 @@ RegisterNUICallback('UseCombination', function(data, cb)
                     QBCore.Functions.Notify("You have purchased this locker","success")
                 end
             end, currentLocker, lockerName)
+        end
+    elseif data.type == 'changePasscode' then
+        SendNUIMessage({
+            action = "closeKeypad"
+            error = false,
+        })
+        if data.combination ~= nil then
+            TriggerServerEvent("shanks-storagelockers:server:changePasscode", data.combination, lockerName, currentLocker)
         end
     end
 end)
