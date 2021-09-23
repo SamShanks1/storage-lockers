@@ -1,16 +1,28 @@
-isLoggedIn = true
 QBCore = nil
 Config = {}
+local OwnedLockerBlips
 local currentLocker, lockerName
 
-Citizen.CreateThread(function()
+Citizen.CreateThread(function() --add an onplayer loaded for blips and config fetch as well as this thread
     while QBCore == nil do
         TriggerEvent("QBCore:GetObject", function(obj) QBCore = obj end)
         Citizen.Wait(100) 
     end
-
     TriggerEvent('shanks-storagelockers:client:FetchConfig')
+    TriggerEvent('shanks-storagelockers:client:setupBlips')
+end)
 
+RegisterNetEvent('QBCore:Client:OnPlayerLoaded')
+AddEventHandler('QBCore:Client:OnPlayerLoaded', function()
+    TriggerEvent('shanks-storagelockers:client:FetchConfig')
+    TriggerEvent('shanks-storagelockers:client:setupBlips')
+end)
+
+RegisterNetEvent('QBCore:Client:OnPlayerUnload')
+AddEventHandler('QBCore:Client:OnPlayerUnload', function()
+    for k, v in pairs(OwnedLockerBlips) do
+        RemoveBlip(v)
+    end
 end)
 
 RegisterNetEvent('shanks-storagelockers:client:FetchConfig')
@@ -18,6 +30,30 @@ AddEventHandler('shanks-storagelockers:client:FetchConfig', function()
     QBCore.Functions.TriggerCallback("shanks-storagelockers:server:FetchConfig", function(lockers)
         Config.Lockers = lockers
     end)
+end)
+
+RegisterNetEvent('shanks-storagelockers:client:setupBlips')
+AddEventHandler('shanks-storagelockers:client:setupBlips', function()   
+    Citizen.CreateThread(function()
+        Citizen.Wait(2000)
+        QBCore.Functions.TriggerCallback('shanks-storagelockers:server:getOwnedLockers', function(ownedLockers)        
+            if ownedLockers ~= nil then
+                for k, v in pairs(ownedLockers) do
+                    local locker = Config.Lockers[ownedLockers]['coords']
+                    lockerBlip = AddBlipForCoords()
+                    SetBlipSprite (lockerBlip, 40)
+                    SetBlipDisplay(HouseBlip, 4)
+                    SetBlipScale  (lockerBlip, 0.65)
+                    SetBlipAsShortRange(lockerBlip, true)
+                    SetBlipColour(lockerBlip, 3)
+                    BeginTextCommandSetBlipName("STRING")
+                    AddTextComponentSubstringPlayerName("Storage Locker")
+                    EndTextCommandSetBlipName(lockerBlip)
+                    table.insert(OwnedLockerBlips, lockerBlip)
+                end
+            end
+        end)
+    end
 end)
 
 Citizen.CreateThread(function() 
@@ -32,31 +68,111 @@ Citizen.CreateThread(function()
                         currentLocker = v
                         lockerName = k
                         sleep = 5
-                        if v["isOwned"] then
-                            DrawText3D(v["coords"].x, v["coords"].y, v["coords"].z, "~g~E~w~ - To open locker")
-                            if IsControlJustReleased(0, 38) then
-                                SendNUIMessage({
-                                    type = "attempt",
-                                    action = "openKeypad",
-                                })
-                                SetNuiFocus(true, true)
-                            end
-                        else
-                            DrawText3D(v["coords"].x, v["coords"].y, v["coords"].z, "~g~E~w~ - To purchase locker for " .. "~g~$"..v.price.."~g~")
-                            if IsControlJustReleased(0, 38) then
-                                QBCore.Functions.Notify("Please set a password")
-                                SendNUIMessage({
-                                    type = "create",
-                                    action = "openKeypad",
-                                })
-                                SetNuiFocus(true, true)
-                            end
+                        DrawText3D(v["coords"].x, v["coords"].y, v["coords"].z, "~g~E~w~ - To use locker")
+                        if IsControlJustReleased(0, 38) then
+                            TriggerEvent("shanks-storagelockers:client:interact", k, v)
                         end
                     end
                 end
             end
     Wait(sleep)
     end
+end)
+
+RegisterNetEvent("shanks-storagelockers:client:interact")
+AddEventHandler("shanks-storagelockers:client:interact", function(k, v)
+    local lockername = k
+    local lockertable = v
+    local citizenid = QBCore.Functions.GetPlayerData().citizenid
+
+    if not lockertable["isOwned"] then
+        TriggerEvent('nh-context:sendMenu', { --if not owned send the purchase button to the menu
+            {
+                id = 2,
+                header = "Purchase",
+                txt = "Purchase Locker for $" .. v.price,
+                params = {
+                    event = "shanks-storagelockers:client:purchase",
+                }
+            },
+        })
+    elseif lockertable["isOwned"] then
+        TriggerEvent('nh-context:sendMenu', { --if locker is owned send these buttons to the menu
+            {
+                id = 3,
+                header = "Open Locker",
+                txt = "",
+                params = {
+                    event = "shanks-storagelockers:client:openLocker",
+                }
+            },
+        })
+    end
+    if lockertable["owner"] == citizenid then
+        TriggerEvent('nh-context:sendMenu', { --send the close button all the time
+            {
+                id = 4,
+                header = "Change Passcode",
+                txt = "",
+                params = {
+                    event = "shanks-storagelockers:client:changePasscode", --needs doing
+                }
+            },
+            {
+                id = 5,
+                header = "Sell Locker",
+                txt = "",
+                params = {
+                    event = "shanks-storagelockers:client:sellLocker", --needs doing
+                }
+            },
+        }) 
+    end
+    TriggerEvent('nh-context:sendMenu', { --send the close button all the time
+        {
+            id = 1,
+            header = "Locker "..lockername,
+            txt = "",
+        },        
+        {
+            id = 9999,
+            header = "Close Menu",
+            txt = "",
+            params = {
+                event = "nh-context:closeMenu",
+            }
+        },
+    }) 
+end)
+
+RegisterNetEvent('shanks-storagelockers:client:sellLocker')
+AddEventHandler('shanks-storagelockers:client:sellLocker', function()
+    print('WIP')
+end)
+
+RegisterNetEvent('shanks-storagelockers:client:changePasscode')
+AddEventHandler('shanks-storagelockers:client:changePasscode', function()
+    print('WIP')
+end)
+
+RegisterNetEvent('shanks-storagelockers:client:purchase') --trigger event after nh-context purchase button. Set password which then starts the buying process
+AddEventHandler('shanks-storagelockers:client:purchase', function()
+    --add the money check here instead
+    QBCore.Functions.Notify("Please set a password")
+    SendNUIMessage({
+        type = "create",
+        action = "openKeypad",
+    })
+    SetNuiFocus(true, true)
+end)
+
+RegisterNetEvent('shanks-storagelockers:client:openLocker') --trigger event after nh-context open locker button. Opens the password UI for the locker
+AddEventHandler('shanks-storagelockers:client:openLocker', function()
+    SendNUIMessage({
+        type = "attempt",
+        action = "openKeypad",
+    })
+    SetNuiFocus(true, true)
 end)
 
 function DrawText3D(x, y, z, text)
@@ -83,10 +199,8 @@ RegisterNUICallback("CombinationSound", function(data, cb)
 end)
 
 RegisterNUICallback('UseCombination', function(data, cb)
-
     if data.type == 'attempt' then
-
-        QBCore.Functions.TriggerCallback('shanks-storagelockers:server:getPassword', function(combination)
+        QBCore.Functions.TriggerCallback('shanks-storagelockers:server:getData', function(combination)
             if tonumber(data.combination) ~= nil then
                 if tonumber(data.combination) == tonumber(combination) then
                     SetNuiFocus(false, false)
@@ -99,7 +213,6 @@ RegisterNUICallback('UseCombination', function(data, cb)
                     slots = currentLocker.slots,
                     })
                     TriggerEvent("inventory:client:SetCurrentStash", lockerName)   
-
                     --takeAnim()
                 else
                     QBCore.Functions.Notify("Incorrect Password", 'error')
@@ -109,12 +222,8 @@ RegisterNUICallback('UseCombination', function(data, cb)
                         error = true,
                     })
                 end
-            end
-        
-        end, lockerName)
-
-
-
+            end        
+        end, lockerName, 'password') --will this work or does it need a var?
     elseif data.type == 'create' then
         SendNUIMessage({
             action = "closeKeypad",
