@@ -124,6 +124,10 @@ AddEventHandler("shanks-storagelockers:client:interact", function(k, v)
                 txt = "",
                 params = {
                     event = "shanks-storagelockers:client:sellLocker", --needs doing
+                    args = {
+                        lockername = lockername,
+                        lockertable = lockertable
+                    }
                 }
             },
         }) 
@@ -146,8 +150,8 @@ AddEventHandler("shanks-storagelockers:client:interact", function(k, v)
 end)
 
 RegisterNetEvent('shanks-storagelockers:client:sellLocker')
-AddEventHandler('shanks-storagelockers:client:sellLocker', function()
-    print('WIP')
+AddEventHandler('shanks-storagelockers:client:sellLocker', function(lockername, lockertable)
+    TriggerServerEvent('shanks-storage:server:sellLocker', lockername, lockertable)
 end)
 
 RegisterNetEvent('shanks-storagelockers:client:changePasscode')
