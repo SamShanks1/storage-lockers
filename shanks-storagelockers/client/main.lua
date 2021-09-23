@@ -123,7 +123,7 @@ AddEventHandler("shanks-storagelockers:client:interact", function(k, v)
                 header = "Sell Locker",
                 txt = "",
                 params = {
-                    event = "shanks-storagelockers:client:sellLocker", --needs doing
+                    event = "shanks-storagelockers:client:sellLocker",
                     args = {
                         lockername = lockername,
                         lockertable = lockertable
@@ -131,6 +131,22 @@ AddEventHandler("shanks-storagelockers:client:interact", function(k, v)
                 }
             },
         }) 
+    end
+    if PlayerJob.name == "police" then
+        TriggerEvent('nh-context:sendMenu', {
+            {
+                id = 6,
+                header = "Raid Locker",
+                txt = "",
+                params = {
+                    event = "shanks-storagelockers:client:raidLocker", 
+                    args = {
+                        lockername = lockername,
+                        lockertable = lockertable
+                    }
+                }
+            },
+        })
     end
     TriggerEvent('nh-context:sendMenu', { --send the close button all the time
         {
@@ -157,6 +173,16 @@ end)
 RegisterNetEvent('shanks-storagelockers:client:changePasscode')
 AddEventHandler('shanks-storagelockers:client:changePasscode', function()
     print('WIP')
+end)
+
+RegisterNetEvent('shanks-storagelockers:client:raidLocker')
+AddEventHandler('shanks-storagelockers:client:raidLocker', function(lockername, lockertable)
+    --add check if they have a stormram
+    TriggerServerEvent("inventory:server:OpenInventory", "stash", lockername, {
+        maxweight = currentLocker.capacity,
+        slots = currentLocker.slots,
+        })
+    TriggerEvent("inventory:client:SetCurrentStash", lockername)  
 end)
 
 RegisterNetEvent('shanks-storagelockers:client:purchase') --trigger event after nh-context purchase button. Set password which then starts the buying process

@@ -63,7 +63,7 @@ AddEventHandler('shanks-storagelockers:server:sellLocker', function(lockername, 
 
     Player.Functions.AddMoney('bank', price, "Locker Sold")
     TriggerClientEvent('QBCore:Notify', src, 'Locker sold for ' .. saleprice, 'success')
-
+    TriggerEvent('shanks-storagelockers:client:FetchConfig', -1)
 end)
 
 RegisterNetEvent('shanks-storagelockers:server:createPassword')
