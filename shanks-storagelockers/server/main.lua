@@ -69,7 +69,7 @@ AddEventHandler('shanks-storagelockers:server:sellLocker', function(lockername, 
     local saleprice = price - ((tonumber(price)/100) * 10)
     Config.Lockers[lockername]['isOwned'] = false
     Config.Lockers[lockername]['owner'] = '' --will this work?
-    Player.Functions.AddMoney('bank', price, "Locker Sold")
+    Player.Functions.AddMoney('bank', saleprice, "Locker Sold")
     SaveResourceFile(GetCurrentResourceName(), "./lockers.json", json.encode(Config.Lockers), -1)
     TriggerClientEvent('QBCore:Notify', src, 'Locker sold for ' .. saleprice, 'success')
     TriggerClientEvent('shanks-storagelockers:client:FetchConfig', -1)
