@@ -1,28 +1,28 @@
-var ButtonsData = [];
-var Buttons = [];
-var Button = [];
+let ButtonsData = [];
+let Buttons = [];
+let Button = [];
 
 const OpenMenu = (data) => {
     DrawButtons(data)
 }
 
 const CloseMenu = () => {
-    for (var i = 0; i < ButtonsData.length; i++) {
-        var id = ButtonsData[i].id
-        $(Buttons[id]).remove();
+    for (let i = 0; i < ButtonsData.length; i++) {
+        let id = ButtonsData[i].id
+        $(".button").remove();
     }
     ButtonsData = [];
     Buttons = [];
     Button = [];
 };
 
-function DrawButtons(data) {
+const DrawButtons = (data) => {
     ButtonsData = data
-    for (var i = 0; i < ButtonsData.length; i++) {
-        var header = ButtonsData[i].header
-        var message = ButtonsData[i].txt
-        var id = ButtonsData[i].id
-        var element
+    for (let i = 0; i < ButtonsData.length; i++) {
+        let header = ButtonsData[i].header
+        let message = ButtonsData[i].txt
+        let id = ButtonsData[i].id
+        let element
 
         element = $(`
             <div class="button" id=`+id+`>
@@ -30,18 +30,18 @@ function DrawButtons(data) {
               <div class="txt" id=`+id+`>`+message+`</div>
             </div>`
         );
-        $('.root-wrapper').append(element);
+        $('#buttons').append(element);
         Buttons[id] = element
         if (ButtonsData[i].params) {
             Button[id] = ButtonsData[i].params
         }
     }
-}
+};
 
 $(document).click(function(event){
-    var $target = $(event.target);
+    let $target = $(event.target);
     if ($target.closest('.button').length && $('.button').is(":visible")) {
-        var id = event.target.id;
+        let id = event.target.id;
         if (!Button[id]) return
         PostData(id)
     }
