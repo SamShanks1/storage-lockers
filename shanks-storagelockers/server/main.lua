@@ -18,6 +18,7 @@ QBCore.Functions.CreateCallback("shanks-storagelockers:server:purchaselocker", f
         Config.Lockers[k]['owner'] = CitizenID 
         SaveResourceFile(GetCurrentResourceName(), "./lockers.json", json.encode(Config.Lockers), -1)
         TriggerClientEvent('shanks-storagelockers:client:FetchConfig', -1)
+        TriggerClientEvent('shanks-storagelockers:client:setupBlips', src)
         cb(bankMoney)
     else
         TriggerClientEvent('QBCore:Notify', src, 'You dont have enough money..', 'error')
@@ -34,18 +35,18 @@ QBCore.Functions.CreateCallback('shanks-storagelockers:server:getOwnedLockers', 
     local src = source
     local pData = QBCore.Functions.GetPlayer(src)
     local citizenID = pData.PlayerData.citizenid
+    local ownedLockers = {}
     if pData then
         Config.Lockers = json.decode(LoadResourceFile(GetCurrentResourceName(), "lockers.json"))
         for k, v in pairs(Config.Lockers) do 
             if citizenID == v["owner"] then
-                local ownedLockers = {}
                 table.insert(ownedLockers, k)--might need to be v, no clue if this will work
             end
-            if ownedLockers ~= nil then
-                cb(ownedLockers)
-            else
-                cb(nil)
-            end
+        end
+        if ownedLockers ~= nil then
+            cb(ownedLockers)
+        else
+            cb(nil)
         end
     end
 end)
@@ -72,6 +73,7 @@ AddEventHandler('shanks-storagelockers:server:sellLocker', function(lockername, 
     Player.Functions.AddMoney('bank', saleprice, "Locker Sold")
     SaveResourceFile(GetCurrentResourceName(), "./lockers.json", json.encode(Config.Lockers), -1)
     TriggerClientEvent('QBCore:Notify', src, 'Locker sold for ' .. saleprice, 'success')
+    TriggerClientEvent('shanks-storagelockers:client:setupBlips', src)
     TriggerClientEvent('shanks-storagelockers:client:FetchConfig', -1)
 end)
 

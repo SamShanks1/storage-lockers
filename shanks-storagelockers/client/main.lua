@@ -1,6 +1,6 @@
 QBCore = nil
 Config = {}
-local OwnedLockerBlips
+local OwnedLockerBlips = {}
 local currentLocker, lockerName
 
 Citizen.CreateThread(function() --add an onplayer loaded for blips and config fetch as well as this thread
@@ -33,26 +33,26 @@ AddEventHandler('shanks-storagelockers:client:FetchConfig', function()
 end)
 
 RegisterNetEvent('shanks-storagelockers:client:setupBlips')
-AddEventHandler('shanks-storagelockers:client:setupBlips', function()   
-    Citizen.CreateThread(function()
-        Citizen.Wait(2000)
-        QBCore.Functions.TriggerCallback('shanks-storagelockers:server:getOwnedLockers', function(ownedLockers)        
-            if ownedLockers ~= nil then
-                for k, v in pairs(ownedLockers) do
-                    local locker = Config.Lockers[ownedLockers]['coords']
-                    lockerBlip = AddBlipForCoords()
-                    SetBlipSprite (lockerBlip, 40)
-                    SetBlipDisplay(HouseBlip, 4)
-                    SetBlipScale  (lockerBlip, 0.65)
-                    SetBlipAsShortRange(lockerBlip, true)
-                    SetBlipColour(lockerBlip, 3)
-                    BeginTextCommandSetBlipName("STRING")
-                    AddTextComponentSubstringPlayerName("Storage Locker")
-                    EndTextCommandSetBlipName(lockerBlip)
-                    table.insert(OwnedLockerBlips, lockerBlip)
-                end
+AddEventHandler('shanks-storagelockers:client:setupBlips', function()
+    for k, v in pairs(OwnedLockerBlips) do
+        RemoveBlip(v)
+    end
+    QBCore.Functions.TriggerCallback('shanks-storagelockers:server:getOwnedLockers', function(ownedLockers)
+        if ownedLockers ~= nil then
+            for k, v in pairs(ownedLockers) do
+                local locker = Config.Lockers[v]['coords']
+                local lockerBlip = AddBlipForCoord(locker.x, locker.y, locker.z)
+                SetBlipSprite (lockerBlip, 50)
+                SetBlipDisplay(lockerBlip, 4)
+                SetBlipScale  (lockerBlip, 0.65)
+                SetBlipAsShortRange(lockerBlip, true)
+                SetBlipColour(lockerBlip, 3)
+                BeginTextCommandSetBlipName("STRING")
+                AddTextComponentSubstringPlayerName("Storage Locker")
+                EndTextCommandSetBlipName(lockerBlip)
+                table.insert(OwnedLockerBlips, lockerBlip)
             end
-        end)
+        end
     end)
 end)
 
