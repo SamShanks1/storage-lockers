@@ -53,7 +53,7 @@ AddEventHandler('shanks-storagelockers:client:setupBlips', function()
                 end
             end
         end)
-    end
+    end)
 end)
 
 Citizen.CreateThread(function() 
@@ -84,7 +84,14 @@ AddEventHandler("shanks-storagelockers:client:interact", function(k, v)
     local lockername = k
     local lockertable = v
     local citizenid = QBCore.Functions.GetPlayerData().citizenid
-
+    PlayerJob = QBCore.Functions.GetPlayerData().job
+    TriggerEvent('nh-context:sendMenu', { --send the close button all the time
+        {
+            id = 0,
+            header = "Locker "..lockername,
+            txt = "",
+        },        
+    }) 
     if not lockertable["isOwned"] then
         TriggerEvent('nh-context:sendMenu', { --if not owned send the purchase button to the menu
             {
@@ -150,24 +157,19 @@ AddEventHandler("shanks-storagelockers:client:interact", function(k, v)
     end
     TriggerEvent('nh-context:sendMenu', { --send the close button all the time
         {
-            id = 1,
-            header = "Locker "..lockername,
-            txt = "",
-        },        
-        {
             id = 9999,
             header = "Close Menu",
             txt = "",
             params = {
                 event = "nh-context:closeMenu",
             }
-        },
+        },   
     }) 
 end)
 
 RegisterNetEvent('shanks-storagelockers:client:sellLocker')
-AddEventHandler('shanks-storagelockers:client:sellLocker', function(lockername, lockertable)
-    TriggerServerEvent('shanks-storage:server:sellLocker', lockername, lockertable)
+AddEventHandler('shanks-storagelockers:client:sellLocker', function(data)
+    TriggerServerEvent('shanks-storagelockers:server:sellLocker', data.lockername, data.lockertable)
 end)
 
 RegisterNetEvent('shanks-storagelockers:client:changePasscode')
@@ -180,15 +182,15 @@ AddEventHandler('shanks-storagelockers:client:changePasscode', function()
 end)
 
 RegisterNetEvent('shanks-storagelockers:client:raidLocker')
-AddEventHandler('shanks-storagelockers:client:raidLocker', function(lockername, lockertable)
+AddEventHandler('shanks-storagelockers:client:raidLocker', function(data)
     QBCore.Functions.TriggerCallback('QBCore:HasItem', function(HasItem)
         if HasItem then
             --add progressbar/animation
-            TriggerServerEvent("inventory:server:OpenInventory", "stash", lockername, {
+            TriggerServerEvent("inventory:server:OpenInventory", "stash", data.lockername, {
                 maxweight = currentLocker.capacity,
                 slots = currentLocker.slots,
                 })
-            TriggerEvent("inventory:client:SetCurrentStash", lockername)  
+            TriggerEvent("inventory:client:SetCurrentStash", data.lockername)  
         else
             QBCore.Functions.Notify("You don't have a Stormram on you..", "error")
         end
@@ -280,7 +282,7 @@ RegisterNUICallback('UseCombination', function(data, cb)
         end
     elseif data.type == 'changePasscode' then
         SendNUIMessage({
-            action = "closeKeypad"
+            action = "closeKeypad",
             error = false,
         })
         if data.combination ~= nil then

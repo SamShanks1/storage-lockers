@@ -8,7 +8,7 @@ end)
 QBCore.Functions.CreateCallback("shanks-storagelockers:server:purchaselocker", function(source, cb, v, k)
     local src = source
     local Player = QBCore.Functions.GetPlayer(src)
-    local CitizenID = player.PlayerData.citizenid
+    local CitizenID = Player.PlayerData.citizenid
     local price = v.price
     local bankMoney = Player.PlayerData.money["bank"]
     if bankMoney >= price then
@@ -37,7 +37,7 @@ QBCore.Functions.CreateCallback('shanks-storagelockers:server:getOwnedLockers', 
     if pData then
         Config.Lockers = json.decode(LoadResourceFile(GetCurrentResourceName(), "lockers.json"))
         for k, v in pairs(Config.Lockers) do 
-            if citizenID = v["owner"] then
+            if citizenID == v["owner"] then
                 local ownedLockers = {}
                 table.insert(ownedLockers, k)--might need to be v, no clue if this will work
             end
@@ -52,6 +52,7 @@ end)
 
 RegisterNetEvent('shanks-storagelockers:server:changePasscode')
 AddEventHandler('shanks-storagelockers:server:changePasscode', function(newPasscode, lockername, lockertable)
+    local src = source
     Config.Lockers = json.decode(LoadResourceFile(GetCurrentResourceName(), "lockers.json"))
     Config.Lockers[lockername]['password'] = newPasscode
     SaveResourceFile(GetCurrentResourceName(), "./lockers.json", json.encode(Config.Lockers), -1)
@@ -65,12 +66,13 @@ AddEventHandler('shanks-storagelockers:server:sellLocker', function(lockername, 
     local src = source
     local Player = QBCore.Functions.GetPlayer(src)
     local price = lockertable.price
-    local saleprice = (tonumber(price)/100) * 10
+    local saleprice = price - ((tonumber(price)/100) * 10)
     Config.Lockers[lockername]['isOwned'] = false
     Config.Lockers[lockername]['owner'] = '' --will this work?
     Player.Functions.AddMoney('bank', price, "Locker Sold")
+    SaveResourceFile(GetCurrentResourceName(), "./lockers.json", json.encode(Config.Lockers), -1)
     TriggerClientEvent('QBCore:Notify', src, 'Locker sold for ' .. saleprice, 'success')
-    TriggerEvent('shanks-storagelockers:client:FetchConfig', -1)
+    TriggerClientEvent('shanks-storagelockers:client:FetchConfig', -1)
 end)
 
 RegisterNetEvent('shanks-storagelockers:server:createPassword')
