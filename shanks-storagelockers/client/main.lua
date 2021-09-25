@@ -122,7 +122,7 @@ AddEventHandler("shanks-storagelockers:client:interact", function(k, v)
                 header = "Change Passcode",
                 txt = "",
                 params = {
-                    event = "shanks-storagelockers:client:changePasscode", --needs doing
+                    event = "shanks-storagelockers:client:changePasscode", 
                 }
             },
             {
@@ -265,7 +265,7 @@ RegisterNUICallback('UseCombination', function(data, cb)
                     })
                 end
             end        
-        end, lockerName, 'password') --will this work or does it need a var?
+        end, lockerName, 'password') 
     elseif data.type == 'create' then
         SendNUIMessage({
             action = "closeKeypad",

@@ -40,7 +40,7 @@ QBCore.Functions.CreateCallback('shanks-storagelockers:server:getOwnedLockers', 
         Config.Lockers = json.decode(LoadResourceFile(GetCurrentResourceName(), "lockers.json"))
         for k, v in pairs(Config.Lockers) do 
             if citizenID == v["owner"] then
-                table.insert(ownedLockers, k)--might need to be v, no clue if this will work
+                table.insert(ownedLockers, k)
             end
         end
         if ownedLockers ~= nil then
