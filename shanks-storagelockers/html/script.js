@@ -46,8 +46,8 @@ Keypad.Open = function(data) {
     CurrentType = "keypad"
     $("#keypad").css("display", "block");
     $( "#keypad" ).html(
-        "<form action='' method='' name='PINform' id='PINform' autocomplete='off' draggable='true'>" +
-            "<input id='PINbox' type='password' value='' name='PINbox' disabled />" +
+        "<form action='' method='' name='PINform' id='PINform' autocomplete='off' draggable='true' onsubmit='submitForm(PINbox)'>" +
+            "<input id='PINbox' type='password' value='' name='PINbox' maxlength='4' />" +
             "<br/>" +
             "<input type='button' class='PINbutton' name='1' value='1' id='1' onClick=addKeyPadNumber(this); />" +
             "<input type='button' class='PINbutton' name='2' value='2' id='2' onClick=addKeyPadNumber(this); />" +
@@ -66,6 +66,7 @@ Keypad.Open = function(data) {
             "<input type='button' class='PINbutton enter' name='+' value='enter' id='+' onClick=submitForm(PINbox); />" +
         "</form>"
     );
+    $("#PINbox").focus();
 }
 
 Keypad.Close = function(data) {
@@ -127,8 +128,7 @@ findCombo = function(comboArr){
             angle < (comboArr[i] + numOffset) * tickAngle) {
             // make numbers green when found
             $(".num" + (i + 1)).addClass("found");
-            // on unlock
-            $.post('https://shanks-storagelockers/callcops');
+
             if (i == comboArr.length - 1) {
                 // unlock :)
                 $.post('https://shanks-storagelockers/PadLockSuccess');

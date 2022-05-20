@@ -67,7 +67,7 @@ Citizen.CreateThread(function()
                     if dist < 1.5 then
                         currentLocker = v
                         lockerName = k
-                        sleep = 5
+                        sleep = 3
                         DrawText3D(v["coords"].x, v["coords"].y, v["coords"].z, "~g~E~w~ - To use locker")
                         if IsControlJustReleased(0, 38) then
                             TriggerEvent("shanks-storagelockers:client:interact", k, v)
@@ -245,11 +245,11 @@ RegisterNUICallback('UseCombination', function(data, cb)
         QBCore.Functions.TriggerCallback('shanks-storagelockers:server:getData', function(combination)
             if tonumber(data.combination) ~= nil then
                 if tonumber(data.combination) == tonumber(combination) then
-                    SetNuiFocus(false, false)
                     SendNUIMessage({
                         action = "closeKeypad",
                         error = false,
                     })
+                    SetNuiFocus(false, false)
                     TriggerServerEvent("inventory:server:OpenInventory", "stash", lockerName, {
                     maxweight = currentLocker.capacity,
                     slots = currentLocker.slots,
@@ -258,12 +258,19 @@ RegisterNUICallback('UseCombination', function(data, cb)
                     --takeAnim()
                 else
                     QBCore.Functions.Notify("Incorrect Password", 'error')
-                    SetNuiFocus(false, false)
                     SendNUIMessage({
                         action = "closeKeypad",
                         error = true,
                     })
+                    SetNuiFocus(false, false)
                 end
+            else
+              QBCore.Functions.Notify("Incorrect Password", 'error')
+              SendNUIMessage({
+                  action = "closeKeypad",
+                  error = true,
+              })
+              SetNuiFocus(false, false)
             end        
         end, lockerName, 'password') 
     elseif data.type == 'create' then
@@ -271,22 +278,37 @@ RegisterNUICallback('UseCombination', function(data, cb)
             action = "closeKeypad",
             error = false,
         })
-        if data.combination ~= nil then
+        SetNuiFocus(false, false)
+        numberCombination = tonumber(data.combination)
+        if data.combination ~= nil and numberCombination ~= nil and string.len(tostring(numberCombination)) == 4 then
             QBCore.Functions.TriggerCallback('shanks-storagelockers:server:purchaselocker', function(bankmoney)
                 if bankmoney >= currentLocker.price then
                     TriggerServerEvent("shanks-storagelockers:server:createPassword", data.combination, lockerName)
                     TriggerEvent('shanks-storagelockers:client:FetchConfig')
+                    TriggerEvent('shanks-storagelockers:client:setupBlips')
                     QBCore.Functions.Notify("You have purchased this locker","success")
                 end
             end, currentLocker, lockerName)
+        else
+            QBCore.Functions.Notify("Invalid Password. Please use a 4 digit pin.", "error")
         end
     elseif data.type == 'changePasscode' then
         SendNUIMessage({
             action = "closeKeypad",
             error = false,
         })
-        if data.combination ~= nil then
+        SetNuiFocus(false, false)
+        numberCombination = tonumber(data.combination)
+        if data.combination ~= nil and numberCombination ~= nil and string.len(tostring(numberCombination)) == 4 then
             TriggerServerEvent("shanks-storagelockers:server:changePasscode", data.combination, lockerName, currentLocker)
+        else
+            QBCore.Functions.Notify("Invalid Password. Please use a 4 digit pin.", "error")
         end
+    else 
+        SendNUIMessage({
+            action = "closeKeypad",
+            error = false,
+        })
+        SetNuiFocus(false, false)
     end
 end)

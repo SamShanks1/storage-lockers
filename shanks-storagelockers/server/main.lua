@@ -1,4 +1,5 @@
 Config = {}
+pData = {}
 
 QBCore.Functions.CreateCallback("shanks-storagelockers:server:FetchConfig", function(source, cb)
     Config.Lockers = json.decode(LoadResourceFile(GetCurrentResourceName(), "lockers.json"))
