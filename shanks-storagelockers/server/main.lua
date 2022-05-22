@@ -1,9 +1,12 @@
-Config = {}
+if Config.QBCore == 'new' then
+    QBCore = exports['qb-core']:GetCoreObject()
+end
+
 pData = {}
 
-QBCore.Functions.CreateCallback("shanks-storagelockers:server:FetchConfig", function(source, cb)
-    Config.Lockers = json.decode(LoadResourceFile(GetCurrentResourceName(), "lockers.json"))
-    cb(Config.Lockers)
+QBCore.Functions.CreateCallback("shanks-storagelockers:server:FetchConfig", function(_, cb)
+    CheckLockers = json.decode(LoadResourceFile(GetCurrentResourceName(), "lockers.json"))
+    cb(CheckLockers)
 end)
 
 QBCore.Functions.CreateCallback("shanks-storagelockers:server:purchaselocker", function(source, cb, v, k)
@@ -14,10 +17,10 @@ QBCore.Functions.CreateCallback("shanks-storagelockers:server:purchaselocker", f
     local bankMoney = Player.PlayerData.money["bank"]
     if bankMoney >= price then
         Player.Functions.RemoveMoney('bank', price, "Locker Purchased")
-        Config.Lockers = json.decode(LoadResourceFile(GetCurrentResourceName(), "lockers.json"))
-        Config.Lockers[k]['isOwned'] = true
-        Config.Lockers[k]['owner'] = CitizenID 
-        SaveResourceFile(GetCurrentResourceName(), "./lockers.json", json.encode(Config.Lockers), -1)
+        CheckLockers = json.decode(LoadResourceFile(GetCurrentResourceName(), "lockers.json"))
+        CheckLockers[k]['isOwned'] = true
+        CheckLockers[k]['owner'] = CitizenID
+        SaveResourceFile(GetCurrentResourceName(), "./lockers.json", json.encode(CheckLockers), -1)
         TriggerClientEvent('shanks-storagelockers:client:FetchConfig', -1)
         TriggerClientEvent('shanks-storagelockers:client:setupBlips', src)
         cb(bankMoney)
@@ -27,9 +30,9 @@ QBCore.Functions.CreateCallback("shanks-storagelockers:server:purchaselocker", f
     end
 end)
 
-QBCore.Functions.CreateCallback("shanks-storagelockers:server:getData", function(source, cb, locker, data)  --make this a fetch event for everything and then pass through what you wanna fetch
-    Config.Lockers = json.decode(LoadResourceFile(GetCurrentResourceName(), "lockers.json"))
-    cb(Config.Lockers[locker][data])
+QBCore.Functions.CreateCallback("shanks-storagelockers:server:getData", function(_, cb, locker, data)  --make this a fetch event for everything and then pass through what you wanna fetch
+    CheckLockers = json.decode(LoadResourceFile(GetCurrentResourceName(), "lockers.json"))
+    cb(CheckLockers[locker][data])
 end)
 
 QBCore.Functions.CreateCallback('shanks-storagelockers:server:getOwnedLockers', function(source, cb)
@@ -38,8 +41,8 @@ QBCore.Functions.CreateCallback('shanks-storagelockers:server:getOwnedLockers', 
     local citizenID = pData.PlayerData.citizenid
     local ownedLockers = {}
     if pData then
-        Config.Lockers = json.decode(LoadResourceFile(GetCurrentResourceName(), "lockers.json"))
-        for k, v in pairs(Config.Lockers) do 
+        CheckLockers = json.decode(LoadResourceFile(GetCurrentResourceName(), "lockers.json"))
+        for k, v in pairs(CheckLockers) do
             if citizenID == v["owner"] then
                 table.insert(ownedLockers, k)
             end
@@ -53,11 +56,11 @@ QBCore.Functions.CreateCallback('shanks-storagelockers:server:getOwnedLockers', 
 end)
 
 RegisterNetEvent('shanks-storagelockers:server:changePasscode')
-AddEventHandler('shanks-storagelockers:server:changePasscode', function(newPasscode, lockername, lockertable)
+AddEventHandler('shanks-storagelockers:server:changePasscode', function(newPasscode, lockername, _)
     local src = source
-    Config.Lockers = json.decode(LoadResourceFile(GetCurrentResourceName(), "lockers.json"))
-    Config.Lockers[lockername]['password'] = newPasscode
-    SaveResourceFile(GetCurrentResourceName(), "./lockers.json", json.encode(Config.Lockers), -1)
+    CheckLockers = json.decode(LoadResourceFile(GetCurrentResourceName(), "lockers.json"))
+    CheckLockers[lockername]['password'] = newPasscode
+    SaveResourceFile(GetCurrentResourceName(), "./lockers.json", json.encode(CheckLockers), -1)
     TriggerClientEvent('shanks-storagelockers:client:FetchConfig', -1)
     TriggerClientEvent('QBCore:Notify', src, 'Passcode Changed', 'success')
 end)
@@ -69,10 +72,10 @@ AddEventHandler('shanks-storagelockers:server:sellLocker', function(lockername, 
     local Player = QBCore.Functions.GetPlayer(src)
     local price = lockertable.price
     local saleprice = price - ((tonumber(price)/100) * 10)
-    Config.Lockers[lockername]['isOwned'] = false
-    Config.Lockers[lockername]['owner'] = '' --will this work?
+    CheckLockers[lockername]['isOwned'] = false
+    CheckLockers[lockername]['owner'] = '' --will this work?
     Player.Functions.AddMoney('bank', saleprice, "Locker Sold")
-    SaveResourceFile(GetCurrentResourceName(), "./lockers.json", json.encode(Config.Lockers), -1)
+    SaveResourceFile(GetCurrentResourceName(), "./lockers.json", json.encode(CheckLockers), -1)
     TriggerClientEvent('QBCore:Notify', src, 'Locker sold for ' .. saleprice, 'success')
     TriggerClientEvent('shanks-storagelockers:client:setupBlips', src)
     TriggerClientEvent('shanks-storagelockers:client:FetchConfig', -1)
@@ -80,9 +83,9 @@ end)
 
 RegisterNetEvent('shanks-storagelockers:server:createPassword')
 AddEventHandler('shanks-storagelockers:server:createPassword', function(password, locker)
-    Config.Lockers = json.decode(LoadResourceFile(GetCurrentResourceName(), "lockers.json"))
-    Config.Lockers[locker]['password'] = password
-    SaveResourceFile(GetCurrentResourceName(), "./lockers.json", json.encode(Config.Lockers), -1)
+    CheckLockers = json.decode(LoadResourceFile(GetCurrentResourceName(), "lockers.json"))
+    CheckLockers[locker]['password'] = password
+    SaveResourceFile(GetCurrentResourceName(), "./lockers.json", json.encode(CheckLockers), -1)
     TriggerClientEvent('shanks-storagelockers:client:FetchConfig', -1)
 end)
 
